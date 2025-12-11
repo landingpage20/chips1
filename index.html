@@ -1,0 +1,381 @@
+bacon<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Aurum Store</title>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:#f4e9d8;
+      min-height:100vh;
+      padding:20px;
+    }
+
+    .container {
+      max-width:1200px;
+      margin:0 auto;
+      background:white;
+      border-radius:20px;
+      padding:40px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      text-align:center;
+      color:#333;
+      margin-bottom:10px;
+      font-size:2.5em;
+    }
+
+    .user-id-display {
+      background:#f0f0f0;
+      padding:10px 20px;
+      border-radius:8px;
+      text-align:center;
+      margin-bottom:30px;
+      font-size:0.9em;
+      color:#666;
+    }
+
+    .products-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:30px;
+      margin-bottom:40px;
+    }
+
+    .product-card {
+      background:white;
+      border:2px solid #e0e0e0;
+      border-radius:15px;
+      padding:25px;
+      transition:all 0.3s ease;
+      cursor:pointer;
+    }
+
+    .product-card:hover {
+      transform:translateY(-5px);
+      box-shadow:0 10px 30px rgba(0,0,0,0.15);
+      border-color:#c29b5b;
+    }
+
+    .product-image {
+      width:100%;
+      height:200px;
+      background:#f5f5f5;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:4em;
+      margin-bottom:20px;
+      overflow:hidden;
+      position:relative;
+      padding:10px;
+    }
+
+    .product-image img {
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+    }
+
+    .product-name {
+      font-size:1.4em;
+      font-weight:bold;
+      color:#333;
+      margin-bottom:10px;
+    }
+
+    .product-description {
+      color:#666;
+      margin-bottom:15px;
+      line-height:1.5;
+    }
+
+    .product-price {
+      font-size:1.5em;
+      color:#c29b5b;
+      font-weight:bold;
+      margin-bottom:15px;
+    }
+
+    .btn-add-cart {
+      width:100%;
+      padding:12px;
+      background:#c29b5b;
+      color:white;
+      border:none;
+      border-radius:8px;
+      font-size:1em;
+      font-weight:bold;
+      cursor:pointer;
+      transition:all 0.3s ease;
+    }
+
+    .btn-add-cart:hover {
+      background:#b0894f;
+      transform:scale(1.02);
+    }
+
+    .btn-add-cart.added {
+      background:#48bb78;
+    }
+
+    .cart-summary {
+      background:#f8f9fa;
+      padding:25px;
+      border-radius:15px;
+      margin-bottom:30px;
+    }
+
+    .cart-summary h2 {
+      color:#333;
+      margin-bottom:15px;
+    }
+
+    .cart-item {
+      display:flex;
+      justify-content:space-between;
+      padding:10px 0;
+      border-bottom:1px solid #e0e0e0;
+    }
+
+    .cart-item button {
+      background:none;
+      border:none;
+      color:#a33;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .cart-total {
+      font-size:1.5em;
+      font-weight:bold;
+      color:#c29b5b;
+      margin-top:15px;
+      text-align:right;
+    }
+
+    .empty-cart {
+      text-align:center;
+      color:#999;
+      padding:20px;
+    }
+
+    .popup {
+      position:fixed;
+      top:20px;
+      right:20px;
+      background:#48bb78;
+      color:white;
+      padding:15px 25px;
+      border-radius:10px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.2);
+      opacity:0;
+      transform:translateY(-20px);
+      transition:all .4s;
+      z-index:1000;
+      pointer-events:none;
+    }
+
+    .popup.show {
+      opacity:1;
+      transform:translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="popup" id="popup">Added to cart!</div>
+
+  <div class="container">
+    <h1>The Aurum Store</h1>
+<h2 style="text-align:center; color:#555; margin-bottom:25px; font-weight:normal;">
+    All our products are made with 100% Natural Ingredients
+  </h2>
+    <div class="user-id-display" id="userIdDisplay">Loading user ID...</div>
+
+    <div class="cart-summary">
+      <h2>🛒 Cart</h2>
+      <div id="cartItems" class="empty-cart">Your cart is empty</div>
+      <div class="cart-total" id="cartTotal"></div>
+    </div>
+
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+
+  <script>
+    /* --------------------------
+         PRODUCTS (UPDATED)
+    -------------------------- */
+    const products = [
+      { id:1, name:'Bacon Chips',  price:2.5, emoji:'🍪', description:'100% Natural Ingredients', image:'images/bacon.png' },
+      { id:2, name:'Barbecue Chips', price:2.5, emoji:'🍪', description: '100% Natural Ingredients', image:'images/barbecue.png' },
+      { id:3, name:'Cheese & Onion Chips', price:2.5, emoji:'🍪', description: '100% Natural Ingredients',  image:'images/cheese.png' },
+      { id:4, name:'Chicken Chips',    price:2.5, emoji:'🍪', description: '100% Natural Ingredients', image:'images/chicken.png' },
+      { id:5, name:'Chilli Chips',     price:2.5, emoji:'🍪', description: '100% Natural Ingredients', image:'images/chilli.png' },
+      { id:6, name:'Salt & Vinegar Chips', price:2.5, emoji:'🍪', description: '100% Natural Ingredients', image:'images/salt.png' }
+    ];
+
+    /* --------------------------
+         Variables
+    -------------------------- */
+    let userId = null;
+    let cart = [];
+    let sessionStart = Date.now();
+    let scrollDepth = 0;
+
+    const trackingData = [];
+
+    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwoS-L9F6wrvlOQshBGLvGe4aweiBvkKsl6rNFQ0adpdJ56LVXp0bfTP-19Z386saLt/exec';
+
+    /* --------------------------
+         POPUP
+    -------------------------- */
+    function showPopup() {
+      const p = document.getElementById("popup");
+      p.classList.add("show");
+      setTimeout(() => p.classList.remove("show"), 1500);
+    }
+
+    /* --------------------------
+         Tracking
+    -------------------------- */
+    function trackEvent(type, productId=null, productPrice=null) {
+      const timestamp = new Date().toLocaleString('it-IT', { hour12:false });
+
+      const event = {
+        timestamp,
+        userId,
+        eventType: type,
+        productId,
+        productName: productId ? products.find(p=>p.id===productId).name : null,
+        productPrice,
+        scrollDepth: scrollDepth,
+        sessionDuration: Math.floor((Date.now()-sessionStart)/1000)
+      };
+
+      trackingData.push(event);
+      sendToGoogleSheets(event);
+    }
+
+    function sendToGoogleSheets(event){
+      fetch(GOOGLE_SHEETS_URL, {
+        method:'POST',
+        mode:'no-cors',
+        headers:{ 'Content-Type':'application/json' },
+        body:JSON.stringify(event)
+      }).catch(console.error);
+    }
+
+    /* --------------------------
+         Render Products
+    -------------------------- */
+    function renderProducts(){
+      const grid = document.getElementById('productsGrid');
+
+      grid.innerHTML = products.map(p => {
+        const imgHTML = p.image
+          ? `<img src="${p.image}" alt="${p.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div class="emoji-fallback" style="display:none;">${p.emoji}</div>`
+          : `<div class="emoji-fallback">${p.emoji}</div>`;
+
+        return `
+          <div class="product-card" onclick="viewProduct(${p.id})">
+            <div class="product-image">${imgHTML}</div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-description">${p.description}</div>
+            <div class="product-price">$${p.price.toFixed(2)}</div>
+            <button class="btn-add-cart" onclick="addToCart(event, ${p.id})" id="btn-${p.id}">ADD TO CART</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* --------------------------
+         Cart Functions
+    -------------------------- */
+    function viewProduct(id){
+      trackEvent('product_view', id, products.find(p => p.id === id).price);
+    }
+
+    function addToCart(event, id){
+      event.stopPropagation();
+      const product = products.find(p => p.id === id);
+
+      const existing = cart.find(i => i.id === id);
+      if(existing) existing.quantity++;
+      else cart.push({...product, quantity:1});
+
+      updateCart();
+      trackEvent('add_to_cart', id, product.price);
+      showPopup();
+    }
+
+    function removeFromCart(id){
+      cart = cart.filter(i => i.id !== id);
+      updateCart();
+      trackEvent('remove_from_cart', id);
+    }
+
+    function updateCart(){
+      const div = document.getElementById('cartItems');
+      const totalDiv = document.getElementById('cartTotal');
+
+      if(cart.length === 0){
+        div.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+        totalDiv.textContent = '';
+        return;
+      }
+
+      div.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <span>${item.name} x${item.quantity}</span>
+          <span>
+            $${(item.price*item.quantity).toFixed(2)}
+            <button onclick="removeFromCart(${item.id})">x</button>
+          </span>
+        </div>
+      `).join('');
+
+      const total = cart.reduce((s,i) => s + i.price*i.quantity, 0);
+      totalDiv.textContent = `Total: $${total.toFixed(2)}`;
+    }
+
+    /* --------------------------
+         Scroll Tracking
+    -------------------------- */
+    window.addEventListener('scroll', () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      scrollDepth = Math.max(scrollDepth, Math.floor((window.scrollY / docHeight) * 100));
+    });
+
+    /* --------------------------
+         Init
+    -------------------------- */
+    function getUserIdFromURL(){
+      const params = new URLSearchParams(window.location.search);
+      return params.get('uid') || params.get('user_id') || params.get('PROLIFIC_PID') || 'DEMO_' + Date.now();
+    }
+
+    function init(){
+      userId = getUserIdFromURL();
+      document.getElementById('userIdDisplay').textContent = `User ID: ${userId}`;
+
+      renderProducts();
+      updateCart();
+
+      trackEvent('session_start');
+    }
+
+    window.addEventListener('beforeunload', () => trackEvent('session_end'));
+
+    init();
+  </script>
+</body>
+</html>
